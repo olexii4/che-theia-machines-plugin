@@ -22,7 +22,7 @@ export interface IWorkspaceMachine {
                 port?: string;
             }
         };
-        status?: string;
+        status: string;
 }
 
 @injectable()

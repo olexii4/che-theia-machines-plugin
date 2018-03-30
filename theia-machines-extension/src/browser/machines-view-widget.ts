@@ -19,8 +19,8 @@ import {
     ContextMenuRenderer,
     TreeModel,
     IExpandableTreeNode
-} from "@theia/core/lib/browser";
-import { h, ElementInlineStyle } from "@phosphor/virtualdom/lib";
+} from '@theia/core/lib/browser';
+import { h, ElementInlineStyle } from '@phosphor/virtualdom/lib';
  import { Message } from '@phosphor/messaging';
 import { Emitter } from '@theia/core';
 import { ICompositeTreeNode } from '@theia/core/lib/browser';
@@ -37,9 +37,6 @@ export namespace MachinesSymbolInformationNode {
 
 export type MachinesViewWidgetFactory = () => MachinesViewWidget;
 export const MachinesViewWidgetFactory = Symbol('MachinesViewWidgetFactory');
-
-
-
 
 
 @injectable()

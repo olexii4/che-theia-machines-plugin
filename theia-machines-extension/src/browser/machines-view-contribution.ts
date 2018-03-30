@@ -84,13 +84,13 @@ export class MachinesViewContribution extends AbstractViewContribution<MachinesV
         });
     }
 
-    protected publish(machines: Array<any>) {
+    protected publish(machines: Array<IWorkspaceMachine>) {
         this.ids.length = 0;
         this.symbolList.length = 0;
 
         const entries: Array<SymbolInformation> = [];
 
-        machines.forEach((machine: any) => {
+        machines.forEach(machine => {
             const machineEntry = {
                 name: machine.machineName,
                 id: this.getId(machine.machineName, 0),
@@ -151,7 +151,7 @@ export class MachinesViewContribution extends AbstractViewContribution<MachinesV
                 .map(sym => this.convertToNode(sym, parentNode));
         childNodes.forEach(childNode => {
             const nodeSymbol = symbolInformationList.filter(s => childNode.symbol.id !== s.id);
-            return childNode.node.children = this.createTree(childNode, nodeSymbol);
+            childNode.node.children = this.createTree(childNode, nodeSymbol);
         });
         return childNodes.map(n => n.node);
     }
@@ -172,11 +172,13 @@ export class MachinesViewContribution extends AbstractViewContribution<MachinesV
         return symbolAndNode;
     }
 
-    private getId(name: string, counter: number): string {
-        let uniqueId: string = name + '_id_' + counter;
-        if (this.ids.find(id => id === uniqueId)) {
-            uniqueId = this.getId(name, ++counter);
-        }
+    private getId(nodeName: string, counter: number): string {
+        let uniqueId: string;
+        do {
+            uniqueId = `${nodeName}_id_${counter}`;
+            counter++;
+        } while (this.ids.find(id => id === uniqueId) && counter < 1000);
+
         this.ids.push(uniqueId);
         return uniqueId;
     }
