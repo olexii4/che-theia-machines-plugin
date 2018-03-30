@@ -1,5 +1,5 @@
 # Theia Machines Extension
-The example of how to build the Theia-based applications with the che-theia-machines-extension.
+The example of how to build the Theia-based applications with the che-theia-machines extension.
 
 ## Getting started
 
@@ -32,7 +32,7 @@ Open http://localhost:3000 in the browser.
 
 ## Developing with the browser example
 
-Start watching of the hello world extension.
+Start watching of the che-theia-machines extension.
 
     cd theia-machines-extension
     yarn watch
@@ -49,7 +49,7 @@ Open http://localhost:3000 in the browser.
 
 ## Developing with the Electron example
 
-Start watching of the hello world extension.
+Start watching of the che-theia-machines extension.
 
     cd theia-machines-extension
     yarn watch
