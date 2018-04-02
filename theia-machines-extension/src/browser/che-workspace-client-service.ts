@@ -10,7 +10,7 @@
  */
 
 import {inject, injectable} from 'inversify';
-import {IBaseEnvVariablesServer} from "../common/base-env-variables-protocol";
+import {IBaseEnvVariablesServer} from '../common/base-env-variables-protocol';
 import {getRestApi, getBackend, IRemoteAPI, IBackend} from 'workspace-client';
 
 @injectable()

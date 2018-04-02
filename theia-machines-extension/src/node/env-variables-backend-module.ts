@@ -12,15 +12,14 @@
 import { ContainerModule } from 'inversify';
 import { ConnectionHandler, JsonRpcConnectionHandler } from "@theia/core/lib/common/messaging";
 import { IBaseEnvVariablesServer, baseEnvVariablesPath } from '../common/base-env-variables-protocol';
-import { BaseEnvVariablesServer } from '../node/base-env-variables-server';
+import {BaseEnvVariablesServer} from './base-env-variables-server';
 
 export default new ContainerModule(bind => {
     bind(IBaseEnvVariablesServer).to(BaseEnvVariablesServer).inSingletonScope();
 
     bind(ConnectionHandler).toDynamicValue(ctx =>
         new JsonRpcConnectionHandler(baseEnvVariablesPath, () => {
-            const baseEnvVariablesServer = ctx.container.get<IBaseEnvVariablesServer>(IBaseEnvVariablesServer);
-            return baseEnvVariablesServer;
+            return ctx.container.get<IBaseEnvVariablesServer>(IBaseEnvVariablesServer);
         })
     ).inSingletonScope();
 });
