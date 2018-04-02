@@ -10,23 +10,18 @@
  */
 
 import {injectable, inject} from 'inversify';
-import {AbstractViewContribution} from '@theia/core/lib/browser/shell/view-contribution';
 import {DisposableCollection} from '@theia/core';
-import {MachinesViewWidget} from './machines-view-widget';
-import {MachinesViewService} from './machines-view-service';
-import {ICompositeTreeNode, ISelectableTreeNode, IExpandableTreeNode} from '@theia/core/lib/browser';
+import {AbstractViewContribution} from '@theia/core/lib/browser/shell/view-contribution';
 import {CheWorkspaceMachinesService, IWorkspaceMachine} from './che-workspace-machines-service';
+import {MachinesViewService} from './machines-view-service';
+import {MachinesSymbolInformationNode, MachinesViewWidget} from './machines-view-widget';
 
-export interface MachinesSymbolInformationNode extends ICompositeTreeNode, ISelectableTreeNode, IExpandableTreeNode {
-    iconClass: string;
-}
-
-export interface NodeAndSymbol {
+interface NodeAndSymbol {
     node: MachinesSymbolInformationNode;
     symbol: SymbolInformation;
 }
 
-export interface SymbolInformation {
+interface SymbolInformation {
     name: string;
     id: string;
     parentId: string | undefined;
@@ -36,12 +31,13 @@ export interface SymbolInformation {
 export const MACHINES_NAVIGATOR_ID = 'machines-view';
 
 const enum SymbolKind {
-    Machine = 1,
+    Empty = 1,
+    Machine,
     Terminal
 }
-const MACHINE_CLASS = 'fa fas fa-circle';
+const EMPTY_CLASS = 'fa fa-times-circle';
+const MACHINE_CLASS = 'fa fa-circle';
 const TERMINAL_CLASS = 'fa fa-terminal';
-
 
 @injectable()
 export class MachinesViewContribution extends AbstractViewContribution<MachinesViewWidget> {
@@ -93,52 +89,58 @@ export class MachinesViewContribution extends AbstractViewContribution<MachinesV
         machines.forEach(machine => {
             const machineEntry = {
                 name: machine.machineName,
-                id: this.getId(machine.machineName, 0),
+                id: this.getRandId(machine.machineName),
                 parentId: undefined,
-                kind: SymbolKind.Machine
+                kind: machine.status ? SymbolKind.Machine : SymbolKind.Empty
             };
             entries.push(machineEntry);
 
-            entries.push({
-                name: machine.status,
-                id: this.getId(machine.machineName + '_status', 0),
-                parentId: machineEntry.id
-            });
+            const status = machine.status;
+            if (status) {
+                entries.push({
+                    name: status,
+                    id: this.getRandId(machine.machineName, 'status'),
+                    parentId: machineEntry.id
+                });
+            }
 
             const servers = machine.servers;
             if (servers) {
                 const serversEntryName = 'servers';
                 const serversEntry = {
                     name: serversEntryName,
-                    id: this.getId(serversEntryName, 100),
+                    id: this.getRandId(serversEntryName),
                     parentId: machineEntry.id
                 };
                 entries.push(serversEntry);
                 Object.keys(servers).forEach((serverName: string) => {
-
-                    const serverPortEntry = {
-                        name: servers[serverName].url.toString(),
-                        id: this.getId(serverName + '_port', 200),
+                    const entryName = servers[serverName].url ? servers[serverName].url : servers[serverName].port;
+                    if (!entryName) {
+                        return;
+                    }
+                    const serverEntry = {
+                        name: entryName.toString(),
+                        id: this.getRandId(serverName),
                         parentId: serversEntry.id
                     };
-                    entries.push(serverPortEntry);
+                    entries.push(serverEntry);
                     entries.push({
                         name: `name: ${serverName}`,
-                        id: this.getId(serverName + '_name', 0),
-                        parentId: serverPortEntry.id
+                        id: this.getRandId(serverName, 'name'),
+                        parentId: serverEntry.id
                     });
                 });
             }
-/*
-            // TODO: Add terminal's call if it terminal node.
-            const terminalEntryName = 'terminal';
-            entries.push({
-                name: terminalEntryName,
-                id: this.getId(terminalEntryName, 1000),
-                parentId: machineEntry.id,
-                kind: SymbolKind.Terminal
-            });
-*/
+            /*
+             // TODO: Add terminal's call if it terminal node.
+             const terminalEntryName = 'terminal';
+             entries.push({
+             name: terminalEntryName,
+             id: this.getRandId(terminalEntryName),
+             parentId: machineEntry.id,
+             kind: SymbolKind.Terminal
+             });
+             */
         });
 
         this.machineViewService.publish(this.createTree(undefined, entries));
@@ -172,19 +174,23 @@ export class MachinesViewContribution extends AbstractViewContribution<MachinesV
         return symbolAndNode;
     }
 
-    private getId(nodeName: string, counter: number): string {
+    private getRandId(nodeName: string, key?: string): string {
         let uniqueId: string;
-        do {
-            uniqueId = `${nodeName}_id_${counter}`;
-            counter++;
-        } while (this.ids.find(id => id === uniqueId) && counter < 1000);
-
+        let name = key ? `${nodeName}_${key}` : nodeName;
+        for (let counter = 0; counter < 100; counter++) {
+            uniqueId = `${name}_id_${('0000' + (Math.random() * Math.pow(36, 4) << 0).toString(36)).slice(-4)}`;
+            if (this.ids.findIndex(id => id === uniqueId) === -1) {
+                break;
+            }
+        }
         this.ids.push(uniqueId);
         return uniqueId;
     }
 
-    private getClass(symbolKind: SymbolKind): string|undefined {
+    private getClass(symbolKind: SymbolKind): string | undefined {
         switch (symbolKind) {
+            case SymbolKind.Empty:
+                return EMPTY_CLASS;
             case SymbolKind.Machine:
                 return MACHINE_CLASS;
             case SymbolKind.Terminal:

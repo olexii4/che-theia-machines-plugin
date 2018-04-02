@@ -10,8 +10,8 @@
  */
 
 import {injectable, inject} from 'inversify';
-import {CheWorkspaceClientService} from './che-workspace-client-service';
 import {IWorkspace, IRequestError} from 'workspace-client';
+import {CheWorkspaceClientService} from './che-workspace-client-service';
 import {IBaseEnvVariablesServer} from '../common/base-env-variables-protocol';
 
 export interface IWorkspaceMachine {
@@ -55,6 +55,14 @@ export class CheWorkspaceMachinesService {
                     if (workspace && workspace.runtime) {
                         Object.keys(workspace.runtime.machines).forEach((machineName: string) => {
                             const machine: IWorkspaceMachine = workspace.runtime.machines[machineName];
+                            machine.machineName = machineName;
+                            this.runtimeMachines.push(machine);
+                        });
+                    } else {
+                        // in the case without workspace runtime
+                        const workspaceMachines = workspace.config.environments[workspace.config.defaultEnv].machines;
+                        Object.keys(workspaceMachines).forEach((machineName: string) => {
+                            const machine: IWorkspaceMachine = workspaceMachines[machineName];
                             machine.machineName = machineName;
                             this.runtimeMachines.push(machine);
                         });

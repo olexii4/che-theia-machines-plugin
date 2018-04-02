@@ -10,8 +10,8 @@
  */
 
 import { injectable, inject } from 'inversify';
-import { Event, Emitter, DisposableCollection } from '@theia/core';
 import { WidgetFactory } from '@theia/core/lib/browser';
+import { Event, Emitter, DisposableCollection } from '@theia/core';
 import { MachinesViewWidget, MachinesViewWidgetFactory, MachinesSymbolInformationNode } from './machines-view-widget';
 import { Widget } from '@phosphor/widgets';
 
@@ -60,7 +60,6 @@ export class MachinesViewService implements WidgetFactory {
         const disposables = new DisposableCollection();
         disposables.push(this.widget.onDidChangeOpenStateEmitter.event(open => this.onDidChangeOpenStateEmitter.fire(open)));
         disposables.push(this.widget.model.onOpenNode(node => this.onDidOpenEmitter.fire(node as MachinesSymbolInformationNode)));
-        disposables.push(this.widget.model.onSelectionChanged(node => this.onDidSelectEmitter.fire(node as MachinesSymbolInformationNode)));
         this.widget.disposed.connect(() => {
             this.widget = undefined;
             disposables.dispose();

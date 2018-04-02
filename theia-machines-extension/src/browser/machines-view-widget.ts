@@ -12,29 +12,26 @@
 import { injectable, inject } from 'inversify';
 import {
     TreeWidget,
-    ITreeNode,
+    TreeNode,
     NodeProps,
-    ISelectableTreeNode,
+    SelectableTreeNode,
     TreeProps,
     ContextMenuRenderer,
     TreeModel,
-    IExpandableTreeNode
+    ExpandableTreeNode
 } from '@theia/core/lib/browser';
-import { h, ElementInlineStyle } from '@phosphor/virtualdom/lib';
- import { Message } from '@phosphor/messaging';
 import { Emitter } from '@theia/core';
-import { ICompositeTreeNode } from '@theia/core/lib/browser';
+import { CompositeTreeNode } from '@theia/core/lib/browser';
+import { Message } from '@phosphor/messaging';
 
-export interface MachinesSymbolInformationNode extends ICompositeTreeNode, ISelectableTreeNode, IExpandableTreeNode {
+export interface MachinesSymbolInformationNode extends CompositeTreeNode, SelectableTreeNode, ExpandableTreeNode {
     iconClass: string;
 }
-
 export namespace MachinesSymbolInformationNode {
-    export function is(node: ITreeNode): node is MachinesSymbolInformationNode {
-        return !!node && ISelectableTreeNode.is(node) && 'iconClass' in node;
+    export function is(node: TreeNode): node is MachinesSymbolInformationNode {
+        return !!node && SelectableTreeNode.is(node) && 'iconClass' in node;
     }
 }
-
 export type MachinesViewWidgetFactory = () => MachinesViewWidget;
 export const MachinesViewWidgetFactory = Symbol('MachinesViewWidgetFactory');
 
@@ -45,40 +42,24 @@ export class MachinesViewWidget extends TreeWidget {
     readonly onDidChangeOpenStateEmitter = new Emitter<boolean>();
 
     constructor(
-        @inject(TreeProps) protected readonly treeProps: TreeProps,
         @inject(TreeModel) model: TreeModel,
+        @inject(TreeProps) protected readonly treeProps: TreeProps,
         @inject(ContextMenuRenderer) protected readonly contextMenuRenderer: ContextMenuRenderer
     ) {
         super(treeProps, model, contextMenuRenderer);
 
         this.id = 'machines-view';
         this.title.label = 'Machines';
-        this.addClass('theia-machines-view');
     }
 
     public setMachinesTree(roots: MachinesSymbolInformationNode[]) {
-        const nodes = this.reconcileTreeState(roots);
-        this.model.root = <ICompositeTreeNode>{
+        this.model.root = <CompositeTreeNode>{
             id: 'machines-view-root',
             name: 'Machines Root',
             visible: false,
-            children: nodes,
+            children: roots,
             parent: undefined
         };
-    }
-
-    protected reconcileTreeState(nodes: ITreeNode[]): ITreeNode[] {
-        nodes.forEach(node => {
-            if (MachinesSymbolInformationNode.is(node)) {
-                const treeNode = this.model.getNode(node.id);
-                if (treeNode && MachinesSymbolInformationNode.is(treeNode)) {
-                    node.expanded = treeNode.expanded;
-                    node.selected = treeNode.selected;
-                }
-                this.reconcileTreeState(Array.from(node.children));
-            }
-        });
-        return nodes;
     }
 
     protected onAfterHide(msg: Message) {
@@ -91,52 +72,15 @@ export class MachinesViewWidget extends TreeWidget {
         this.onDidChangeOpenStateEmitter.fire(true);
     }
 
-    protected onUpdateRequest(msg: Message): void {
-        if (!this.model.selectedNode && ISelectableTreeNode.is(this.model.root)) {
-            this.model.selectNode(this.model.root);
-        }
-        super.onUpdateRequest(msg);
-    }
-
-/*    createNodeClassNames(node: ITreeNode, props: NodeProps): string[] {
+    protected createNodeClassNames(node: TreeNode, props: NodeProps): string[] {
         const classNames = super.createNodeClassNames(node, props);
         if (MachinesSymbolInformationNode.is(node)) {
              classNames.push(node.iconClass);
         }
         return classNames;
-    }*/
-
-    protected renderNode(node: ITreeNode, props: NodeProps): h.Child {
-        const attributes = super.createNodeAttributes(node, props);
-        return h.div(attributes, this.renderIcon(node), super.renderNodeCaption(node, props));
     }
 
-    protected createNodeStyle(node: ITreeNode, props: NodeProps): ElementInlineStyle | undefined {
-        return {
-            height: '22px',
-            paddingLeft: `${props.indentSize}px`,
-            display: props.visible ? 'flex' : 'none',
-        };
+    protected isExpandable(node: TreeNode): node is ExpandableTreeNode {
+        return ExpandableTreeNode.is(node) && node.children && node.children.length > 0;
     }
-
-    renderIcon(node: ITreeNode): h.Child {
-        if (MachinesSymbolInformationNode.is(node)) {
-            return h.i({
-                className: node.iconClass,
-                style: {
-                    fontSize: '15px',
-                    lineHeight: '22px',
-                    marginLeft: '1px',
-                    marginRight: !node.children.length ? '4px' : '0px'
-                }
-            });
-        }
-        return null;
-    }
-
-
-    protected isExpandable(node: ITreeNode): node is IExpandableTreeNode {
-        return MachinesSymbolInformationNode.is(node) && node.children && node.children.length > 0;
-    }
-
 }

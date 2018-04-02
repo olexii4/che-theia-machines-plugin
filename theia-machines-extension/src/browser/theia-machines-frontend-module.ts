@@ -10,19 +10,18 @@
  */
 
 import {ContainerModule, interfaces} from 'inversify';
+import {FrontendApplicationContribution, createTreeContainer, TreeWidget} from '@theia/core/lib/browser';
+import {KeybindingContribution} from '@theia/core/lib/browser/keybinding';
+import {WidgetFactory} from '@theia/core/lib/browser/widget-manager';
+import {WebSocketConnectionProvider} from '@theia/core/lib/browser';
+import {CommandContribution} from '@theia/core/lib/common/command';
+import {MenuContribution} from '@theia/core/lib/common/menu';
 import {MachinesViewService} from './machines-view-service';
 import {MachinesViewContribution} from './machines-view-contribution';
-import {WidgetFactory} from '@theia/core/lib/browser/widget-manager';
-import {FrontendApplicationContribution, createTreeContainer, TreeWidget} from '@theia/core/lib/browser';
-import {MachinesViewWidgetFactory, MachinesViewWidget} from './machines-view-widget';
-import {CommandContribution} from '@theia/core/lib/common/command';
-import {KeybindingContribution} from '@theia/core/lib/browser/keybinding';
-import {MenuContribution} from '@theia/core/lib/common/menu';
 import {CheWorkspaceClientService} from './che-workspace-client-service';
 import {CheWorkspaceMachinesService} from './che-workspace-machines-service';
+import {MachinesViewWidgetFactory, MachinesViewWidget} from './machines-view-widget';
 import {IBaseEnvVariablesServer, baseEnvVariablesPath} from '../common/base-env-variables-protocol';
-import {WebSocketConnectionProvider} from '@theia/core/lib/browser';
-
 
 export default new ContainerModule(bind => {
     // add your contribution bindings here
